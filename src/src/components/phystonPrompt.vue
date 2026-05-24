@@ -458,106 +458,159 @@
             </div>
             <Transition name="fade">
                 <div class="group-tabs" v-show="!hideGroupTags && groupTagsProcessed.length">
-                    <div class="group-header" ref="groupTabsHeader">
-                        <div v-for="(item, index) in groupTagsProcessed"
-                             :key="index"
-                             :class="['group-tab', item.tabKey == groupTagsActive ? 'active' : '']"
-                             @click="activeGroupTab(index)"
-                             :data-name="item.name">{{ item.name }}</div>
-                    </div>
-                    <div class="group-body">
-                        <div v-for="(item, index) in groupTagsProcessed" :key="index" :class="['group-main', item.tabKey == groupTagsActive ? 'active' : '']">
-                            <div class="sub-group-header" v-if="item.tabKey == groupTagsActive">
-                                <div v-for="(group, subIndex) in item.groups"
-                                     :key="subIndex"
-                                     :class="[group.type && group.type === 'wrap' ? 'sub-group-tag-wrap': 'sub-group-tab', group.tabKey == subGroupTagsActive ? 'active' : '']"
-                                     @click="activeSubGroupTab(index, subIndex)"
-                                     :data-name="group.name">{{ group.name }}</div>
+                    <!-- Search Bar Section -->
+                    <div class="group-search-bar">
+                        <div class="search-toggle-wrap">
+                            <label class="search-checkbox-label">
+                                <input type="checkbox" v-model="searchEnabled" class="search-checkbox-input" />
+                                <span class="search-checkbox-text">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="search-icon-svg"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                    {{ getLang('search_switch') }}
+                                </span>
+                            </label>
+                        </div>
+                        <Transition name="slide-fade">
+                            <div v-if="searchEnabled" class="search-input-wrap">
+                                <input type="text"
+                                       v-model="searchQuery"
+                                       class="search-input"
+                                       :placeholder="getLang('search_keywords_placeholder')"
+                                       ref="searchInputRef" />
+                                <span v-if="searchQuery" class="clear-search-btn" @click="searchQuery = ''">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </span>
                             </div>
-                            <div class="sub-group-body" v-if="item.tabKey == groupTagsActive">
-                                <div v-for="(group, subIndex) in item.groups" :key="subIndex" :class="['sub-group-main', group.tabKey == subGroupTagsActive ? 'active' : '']">
-                                    <Transition name="fade">
-                                        <div class="group-tags" v-if="group.tabKey == subGroupTagsActive">
-                                            <div v-if="group.type === 'extraNetworks'" class="group-extra-network"
-                                                 v-for="extraData in group.datas" :key="extraData.name"
-                                                 @click="onClickGroupTagExtraNetwork(extraData, item, group)"
-                                                 @mouseenter="onGroupExtraNetworkMouseEnter($event, extraData.name)"
-                                                 @mousemove="onGroupExtraNetworkMouseMove"
-                                                 @mouseleave="onGroupExtraNetworkMouseLeave"
-                                                 :style="getGroupTagExtraNetworkStyle(extraData)">
-                                                <img class="extra-network-preview" :src="extraData.preview || './file=html/card-no-preview.png'" />
-                                                <div class="extra-network-name">{{ extraData.name }}</div>
-                                                <div class="extra-network-loading" v-if="extraData.loading">
-                                                    <icon-svg name="loading"/>
+                        </Transition>
+                    </div>
+
+                    <!-- Underneath search bar: if search is enabled, show search view, otherwise show original group-header and group-body! -->
+                    <template v-if="searchEnabled">
+                        <div class="group-body search-mode-body">
+                            <div class="search-results-container">
+                                <div v-if="!searchQuery" class="search-empty-placeholder">
+                                    <div class="placeholder-icon">🔍</div>
+                                    <div class="placeholder-text">{{ getLang('please_enter_keywords_to_search') }}</div>
+                                </div>
+                                <div v-else-if="searchResults.length" class="group-tags search-results-tags">
+                                    <div class="tag-item" ref="groupTagItem" v-for="(result, rIndex) in searchResults" :key="rIndex"
+                                         v-tooltip="getGroupTagTooltip(result.local, result.en)"
+                                         @click="onClickGroupTag(result.local, result.en, result.item, result.group)">
+                                        <template v-if="result.local && result.local != result.en">
+                                            <div class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.local }}</div>
+                                            <div class="tag-en">{{ result.en }}</div>
+                                        </template>
+                                        <div v-else class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.en }}</div>
+                                    </div>
+                                </div>
+                                <div v-else class="search-empty-placeholder">
+                                    <div class="placeholder-icon">ℹ️</div>
+                                    <div class="placeholder-text">{{ getLang('no_results_found') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="group-header" ref="groupTabsHeader">
+                            <div v-for="(item, index) in groupTagsProcessed"
+                                 :key="index"
+                                 :class="['group-tab', item.tabKey == groupTagsActive ? 'active' : '']"
+                                 @click="activeGroupTab(index)"
+                                 :data-name="item.name">{{ item.name }}</div>
+                        </div>
+                        <div class="group-body">
+                            <div v-for="(item, index) in groupTagsProcessed" :key="index" :class="['group-main', item.tabKey == groupTagsActive ? 'active' : '']">
+                                <div class="sub-group-header" v-if="item.tabKey == groupTagsActive">
+                                    <div v-for="(group, subIndex) in item.groups"
+                                         :key="subIndex"
+                                         :class="[group.type && group.type === 'wrap' ? 'sub-group-tag-wrap': 'sub-group-tab', group.tabKey == subGroupTagsActive ? 'active' : '']"
+                                         @click="activeSubGroupTab(index, subIndex)"
+                                         :data-name="group.name">{{ group.name }}</div>
+                                </div>
+                                <div class="sub-group-body" v-if="item.tabKey == groupTagsActive">
+                                    <div v-for="(group, subIndex) in item.groups" :key="subIndex" :class="['sub-group-main', group.tabKey == subGroupTagsActive ? 'active' : '']">
+                                        <Transition name="fade">
+                                            <div class="group-tags" v-if="group.tabKey == subGroupTagsActive">
+                                                <div v-if="group.type === 'extraNetworks'" class="group-extra-network"
+                                                     v-for="extraData in group.datas" :key="extraData.name"
+                                                     @click="onClickGroupTagExtraNetwork(extraData, item, group)"
+                                                     @mouseenter="onGroupExtraNetworkMouseEnter($event, extraData.name)"
+                                                     @mousemove="onGroupExtraNetworkMouseMove"
+                                                     @mouseleave="onGroupExtraNetworkMouseLeave"
+                                                     :style="getGroupTagExtraNetworkStyle(extraData)">
+                                                    <img class="extra-network-preview" :src="extraData.preview || './file=html/card-no-preview.png'" />
+                                                    <div class="extra-network-name">{{ extraData.name }}</div>
+                                                    <div class="extra-network-loading" v-if="extraData.loading">
+                                                        <icon-svg name="loading"/>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="tag-item" ref="groupTagItem" v-for="(local, en) in group.tags"
+                                                    v-tooltip="getGroupTagTooltip(local, en)"
+                                                    @click="onClickGroupTag(local, en, item, group)">
+                                                    <template v-if="local && local != en">
+                                                        <div class="tag-local" :style="getGroupTagStyle(item.name, group.name, en)">{{ local }}</div>
+                                                        <div class="tag-en">{{ en }}</div>
+                                                    </template>
+                                                    <div v-else class="tag-local" :style="getGroupTagStyle(item.name, group.name, en)">{{ en }}</div>
                                                 </div>
                                             </div>
-                                            <div v-else class="tag-item" ref="groupTagItem" v-for="(local, en) in group.tags"
-                                                v-tooltip="getGroupTagTooltip(local, en)"
-                                                @click="onClickGroupTag(local, en, item, group)">
-                                                <template v-if="local && local != en">
-                                                    <div class="tag-local" :style="getGroupTagStyle(item.name, group.name, en)">{{ local }}</div>
-                                                    <div class="tag-en">{{ en }}</div>
-                                                </template>
-                                                <div v-else class="tag-local" :style="getGroupTagStyle(item.name, group.name, en)">{{ en }}</div>
+                                        </Transition>
+                                        <div class="tags-footer" v-if="item.type === 'extraNetworks'">
+                                            <div class="tags-size">
+                                                <div class="tags-size-item" @click="onClickGroupExtraNetworkRefresh">
+                                                    <icon-svg v-if="extraNetworksRefreshing" name="loading"/>
+                                                    <icon-svg v-if="!extraNetworksRefreshing" class="hover-scale-120" name="refresh"/>
+                                                    <div class="size-title">{{ this.getLang('refresh') }}</div>
+                                                </div>
+                                                <div class="tags-size-item">
+                                                    <!--<input class="size-range" type="range" min="10" max="1000" step="1"
+                                                           :value="extraNetworksWidth"
+                                                           @change="$emit('update:extraNetworksWidth', $event.target.value)"/>-->
+                                                    <input class="size-number" type="number" min="10" max="1000" step="1"
+                                                           :value="extraNetworksWidth"
+                                                           @change="$emit('update:extraNetworksWidth', $event.target.value)">
+                                                    <div class="size-title">{{ this.getLang('width') }}</div>
+                                                </div>
+                                                <div class="tags-size-item">
+                                                    <!--<input class="size-range" type="range" min="10" max="1000" step="1"
+                                                           :value="extraNetworksHeight"
+                                                           @change="$emit('update:extraNetworksHeight', $event.target.value)"/>-->
+                                                    <input class="size-number" type="number" min="10" max="1000" step="1"
+                                                           :value="extraNetworksHeight"
+                                                           @change="$emit('update:extraNetworksHeight', $event.target.value)">
+                                                    <div class="size-title">{{ this.getLang('height') }}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </Transition>
-                                    <div class="tags-footer" v-if="item.type === 'extraNetworks'">
-                                        <div class="tags-size">
-                                            <div class="tags-size-item" @click="onClickGroupExtraNetworkRefresh">
-                                                <icon-svg v-if="extraNetworksRefreshing" name="loading"/>
-                                                <icon-svg v-if="!extraNetworksRefreshing" class="hover-scale-120" name="refresh"/>
-                                                <div class="size-title">{{ this.getLang('refresh') }}</div>
+                                        <div class="tags-footer" v-if="item.type !== 'favorite' && item.type !== 'extraNetworks'">
+                                            <div class="tags-color">
+                                                <div>{{ getLang('tags_color') }}:</div>
+                                                <div class="tags-color-picker hover-scale-120"
+                                                     v-tooltip="groupTagsColor[getTagsColorKey(item.name, group.name)]"
+                                                     unaffected="true">
+                                                    <color-picker
+                                                        :theme="theme == 'dark' ? 'black' : 'white'"
+                                                        v-model:pureColor="groupTagsColor[getTagsColorKey(item.name, group.name)]"
+                                                        @pureColorChange="onTagsColorChange(getTagsColorKey(item.name, group.name))"
+                                                    />
+                                                </div>
+                                                <div class="tags-color-reset hover-scale-120"
+                                                     v-tooltip="getLang('reset_default_color')"
+                                                     @click="onClickResetTagsColor(getTagsColorKey(item.name, group.name))">
+                                                    <icon-svg name="reset"/>
+                                                </div>
+                                                <div class="tags-color-clear hover-scale-120"
+                                                     v-tooltip="getLang('clear_color')"
+                                                     @click="onClickClearTagsColor(getTagsColorKey(item.name, group.name))">
+                                                    <icon-svg name="clear"/>
+                                                </div>
                                             </div>
-                                            <div class="tags-size-item">
-                                                <!--<input class="size-range" type="range" min="10" max="1000" step="1"
-                                                       :value="extraNetworksWidth"
-                                                       @change="$emit('update:extraNetworksWidth', $event.target.value)"/>-->
-                                                <input class="size-number" type="number" min="10" max="1000" step="1"
-                                                       :value="extraNetworksWidth"
-                                                       @change="$emit('update:extraNetworksWidth', $event.target.value)">
-                                                <div class="size-title">{{ this.getLang('width') }}</div>
-                                            </div>
-                                            <div class="tags-size-item">
-                                                <!--<input class="size-range" type="range" min="10" max="1000" step="1"
-                                                       :value="extraNetworksHeight"
-                                                       @change="$emit('update:extraNetworksHeight', $event.target.value)"/>-->
-                                                <input class="size-number" type="number" min="10" max="1000" step="1"
-                                                       :value="extraNetworksHeight"
-                                                       @change="$emit('update:extraNetworksHeight', $event.target.value)">
-                                                <div class="size-title">{{ this.getLang('height') }}</div>
-                                            </div>
+                                            <div class="tags-copyright">{{ getLang('tags-copyright') }}</div>
                                         </div>
-                                    </div>
-                                    <div class="tags-footer" v-if="item.type !== 'favorite' && item.type !== 'extraNetworks'">
-                                        <div class="tags-color">
-                                            <div>{{ getLang('tags_color') }}:</div>
-                                            <div class="tags-color-picker hover-scale-120"
-                                                 v-tooltip="groupTagsColor[getTagsColorKey(item.name, group.name)]"
-                                                 unaffected="true">
-                                                <color-picker
-                                                    :theme="theme == 'dark' ? 'black' : 'white'"
-                                                    v-model:pureColor="groupTagsColor[getTagsColorKey(item.name, group.name)]"
-                                                    @pureColorChange="onTagsColorChange(getTagsColorKey(item.name, group.name))"
-                                                />
-                                            </div>
-                                            <div class="tags-color-reset hover-scale-120"
-                                                 v-tooltip="getLang('reset_default_color')"
-                                                 @click="onClickResetTagsColor(getTagsColorKey(item.name, group.name))">
-                                                <icon-svg name="reset"/>
-                                            </div>
-                                            <div class="tags-color-clear hover-scale-120"
-                                                 v-tooltip="getLang('clear_color')"
-                                                 @click="onClickClearTagsColor(getTagsColorKey(item.name, group.name))">
-                                                <icon-svg name="clear"/>
-                                            </div>
-                                        </div>
-                                        <div class="tags-copyright">{{ getLang('tags-copyright') }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </Transition>
         </div>
@@ -767,6 +820,8 @@ export default {
             loading: {},
             editing: {},
             isEditing: false,
+            searchEnabled: false,
+            searchQuery: '',
         }
     },
     computed: {
@@ -776,6 +831,35 @@ export default {
         translateApiItem() {
             return common.getTranslateApiItem(this.translateApis, this.translateApi)
         },
+        flatGroupTags() {
+            let list = []
+            if (!this.groupTags) return list
+            this.groupTags.forEach(item => {
+                if (!item.groups) return
+                item.groups.forEach(group => {
+                    if (group.type === 'wrap') return
+                    if (!group.tags) return
+                    for (let en in group.tags) {
+                        let local = group.tags[en]
+                        list.push({
+                            en: en,
+                            local: local || '',
+                            item: item,
+                            group: group
+                        })
+                    }
+                })
+            })
+            return list
+        },
+        searchResults() {
+            if (!this.searchQuery) return []
+            let query = this.searchQuery.toLowerCase().trim()
+            return this.flatGroupTags.filter(tag => {
+                return (tag.en && tag.en.toLowerCase().includes(query)) ||
+                       (tag.local && tag.local.toLowerCase().includes(query))
+            })
+        }
     },
     watch: {
         loras: {
@@ -801,6 +885,21 @@ export default {
                 })
             },
             immediate: false,
+        },
+        searchEnabled(val) {
+            if (val) {
+                this.$nextTick(() => {
+                    if (this.$refs.searchInputRef) {
+                        this.$refs.searchInputRef.focus()
+                    }
+                })
+            }
+        },
+        searchResults: {
+            handler() {
+                this._setGroupTagItemWidth()
+            },
+            deep: true
         },
     },
     mounted() {
@@ -1570,3 +1669,141 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.group-search-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 12px;
+}
+
+.search-toggle-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.search-checkbox-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.search-checkbox-input {
+    display: none;
+}
+
+.search-checkbox-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    color: var(--body-text-color, #ccc);
+    transition: all 0.3s ease;
+}
+
+.search-checkbox-input:checked + .search-checkbox-text {
+    background: var(--primary-color, rgba(255, 123, 2, 0.25));
+    border-color: var(--primary-color, rgba(255, 123, 2, 0.5));
+    color: #fff;
+    box-shadow: 0 0 8px var(--primary-color, rgba(255, 123, 2, 0.3));
+}
+
+.search-checkbox-text:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-input-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-input {
+    width: 100%;
+    height: 32px;
+    padding: 6px 32px 6px 12px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--primary-color, rgba(255, 123, 2, 0.6)) !important;
+    box-shadow: 0 0 6px var(--primary-color, rgba(255, 123, 2, 0.25));
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.search-empty-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #888;
+    text-align: center;
+}
+
+.placeholder-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.placeholder-text {
+    font-size: 14px;
+}
+
+.slide-fade-enter-active, .slide-fade-leave-active {
+    transition: all 0.3s ease;
+}
+.slide-fade-enter-from, .slide-fade-leave-to {
+    transform: translateX(10px);
+    opacity: 0;
+}
+
+.search-mode-body {
+    padding: 12px;
+}
+
+.search-results-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>

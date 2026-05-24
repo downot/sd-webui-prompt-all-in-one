@@ -5,6 +5,10 @@
             "code": "zh_CN",
             "name": "简体中文 (中国)",
             "lang": {
+                "search_switch": "搜索",
+                "search_keywords_placeholder": "输入关键词搜索...",
+                "please_enter_keywords_to_search": "请输入关键词搜索...",
+                "no_results_found": "没有找到匹配的关键词",
                 "need_api_key": "需要API Key",
                 "dont_need_api_key": "不需要API Key（不稳定）",
                 "prompt": "提示词",
@@ -190,6 +194,10 @@
             "code": "zh_HK",
             "name": "繁體中文 (中國香港)",
             "lang": {
+                "search_switch": "搜尋",
+                "search_keywords_placeholder": "輸入關鍵詞搜尋...",
+                "please_enter_keywords_to_search": "請輸入關鍵詞搜尋...",
+                "no_results_found": "沒有找到匹配的關鍵詞",
                 "need_api_key": "需要API Key",
                 "dont_need_api_key": "唔使API Key（唔太可靠）",
                 "prompt": "提示詞",
@@ -375,6 +383,10 @@
             "code": "zh_TW",
             "name": "繁体中文 (中國台灣)",
             "lang": {
+                "search_switch": "搜尋",
+                "search_keywords_placeholder": "輸入關鍵詞搜尋...",
+                "please_enter_keywords_to_search": "請輸入關鍵詞搜尋...",
+                "no_results_found": "沒有找到匹配的關鍵詞",
                 "need_api_key": "需要API Key",
                 "dont_need_api_key": "不需要API Key（不穩定）",
                 "prompt": "提示詞",
@@ -560,6 +572,10 @@
             "code": "en_US",
             "name": "English (US)",
             "lang": {
+                "search_switch": "Search",
+                "search_keywords_placeholder": "Enter keyword to search...",
+                "please_enter_keywords_to_search": "Please enter keywords to search...",
+                "no_results_found": "No matching keywords found",
                 "need_api_key": "API Key Required",
                 "dont_need_api_key": "API Key Not Required (Unstable)",
                 "prompt": "Prompt",
