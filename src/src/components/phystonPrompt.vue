@@ -209,7 +209,7 @@
                             <label v-tooltip="getLang('search_switch')">
                                 <input type="checkbox" name="search_enabled" value="1"
                                        v-model="searchEnabled">
-                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                <icon-svg name="search"/>
                             </label>
                         </div>
                         <div class="gradio-checkbox hover-scale-120">
@@ -284,6 +284,31 @@
                                         </div>
                                     </div>
                                 </Transition>
+                            </div>
+                        </div>
+
+                        <div class="prompt-search-list" ref="promptSearchList"
+                             v-show="searchEnabled && showSearchList && searchQuery"
+                             :style="appendListStyle">
+                            <div v-if="searchResults.length === 0" class="search-no-results">
+                                {{ getLang('no_results_found') }}
+                            </div>
+                            <div v-else class="search-results-wrapper">
+                                <div v-for="(result, rIndex) in searchResults" :key="rIndex"
+                                     class="search-result-item"
+                                     v-tooltip="getGroupTagTooltip(result.local, result.en)"
+                                     @click="onClickSearchSuggestion(result)">
+                                    <div class="result-tag-content">
+                                        <template v-if="result.local && result.local != result.en">
+                                            <span class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.local }}</span>
+                                            <span class="tag-en">{{ result.en }}</span>
+                                        </template>
+                                        <span v-else class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.en }}</span>
+                                    </div>
+                                    <div class="result-group-info">
+                                        {{ result.item.name }} / {{ result.group.name }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -468,32 +493,7 @@
             <Transition name="fade">
                 <div class="group-tabs" v-show="!hideGroupTags && groupTagsProcessed.length">
                     <!-- Underneath search bar: if search is enabled, show search view, otherwise show original group-header and group-body! -->
-                    <template v-if="searchEnabled">
-                        <div class="group-body search-mode-body" style="padding-top: 12px;">
-                            <div class="search-results-container">
-                                <div v-if="!searchQuery" class="search-empty-placeholder">
-                                    <div class="placeholder-icon">🔍</div>
-                                    <div class="placeholder-text">{{ getLang('please_enter_keywords_to_search') }}</div>
-                                </div>
-                                <div v-else-if="searchResults.length" class="group-tags search-results-tags">
-                                    <div class="tag-item" ref="groupTagItem" v-for="(result, rIndex) in searchResults" :key="rIndex"
-                                         v-tooltip="getGroupTagTooltip(result.local, result.en)"
-                                         @click="onClickGroupTag(result.local, result.en, result.item, result.group)">
-                                        <template v-if="result.local && result.local != result.en">
-                                            <div class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.local }}</div>
-                                            <div class="tag-en">{{ result.en }}</div>
-                                        </template>
-                                        <div v-else class="tag-local" :style="getGroupTagStyle(result.item.name, result.group.name, result.en)">{{ result.en }}</div>
-                                    </div>
-                                </div>
-                                <div v-else class="search-empty-placeholder">
-                                    <div class="placeholder-icon">ℹ️</div>
-                                    <div class="placeholder-text">{{ getLang('no_results_found') }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                    <template v-else>
+
                         <div class="group-header" ref="groupTabsHeader">
                             <div v-for="(item, index) in groupTagsProcessed"
                                  :key="index"
@@ -594,7 +594,7 @@
                                 </div>
                             </div>
                         </div>
-                    </template>
+
                 </div>
             </Transition>
         </div>
@@ -806,6 +806,7 @@ export default {
             isEditing: false,
             searchEnabled: false,
             searchQuery: '',
+            showSearchList: false,
         }
     },
     computed: {
@@ -872,6 +873,7 @@ export default {
         },
         searchEnabled(val) {
             this.searchQuery = ''
+            this.showSearchList = false
             if (this.$refs.promptTagAppend) {
                 this.$refs.promptTagAppend.value = ''
             }
@@ -879,6 +881,10 @@ export default {
                 this.$nextTick(() => {
                     if (this.$refs.promptTagAppend) {
                         this.$refs.promptTagAppend.focus()
+                        this.appendListStyle = {
+                            top: this.$refs.promptTagAppend.offsetTop + this.$refs.promptTagAppend.offsetHeight + 'px',
+                            left: this.$refs.promptTagAppend.offsetLeft + 'px',
+                        }
                     }
                 })
             }
@@ -945,6 +951,22 @@ export default {
         onAppendTagInput(e) {
             if (this.searchEnabled) {
                 this.searchQuery = e.target.value
+                if (this.$refs.promptTagAppend) {
+                    this.appendListStyle = {
+                        top: this.$refs.promptTagAppend.offsetTop + this.$refs.promptTagAppend.offsetHeight + 'px',
+                        left: this.$refs.promptTagAppend.offsetLeft + 'px',
+                    }
+                }
+                this.showSearchList = true
+            }
+        },
+        onClickSearchSuggestion(result) {
+            this.onClickGroupTag(result.local, result.en, result.item, result.group)
+            this.searchQuery = ''
+            this.showSearchList = false
+            if (this.$refs.promptTagAppend) {
+                this.$refs.promptTagAppend.value = ''
+                this.$refs.promptTagAppend.focus()
             }
         },
         onTextareaChange(event) {

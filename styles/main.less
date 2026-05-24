@@ -251,6 +251,9 @@
     --pp-ph-iconSvgLoad-width: auto;
     --pp-ph-iconSvgLoad-height: 18px;
     --pp-ph-iconSvgLoad-color: rgba(0, 0, 0, .88);
+    --pp-ph-iconSvgSearch-width: auto;
+    --pp-ph-iconSvgSearch-height: 18px;
+    --pp-ph-iconSvgSearch-color: rgba(0, 0, 0, .88);
 
     // .physton-prompt .prompt-header .prompt-append-list
     --pp-ph-pal-iconSvgWrap-width: auto;
@@ -2716,6 +2719,7 @@
 
         .set-icon-svg(var(--pp-ph-iconSvgInput-width), var(--pp-ph-iconSvgInput-height), var(--pp-ph-iconSvgInput-color), icon-svg-input);
         .set-icon-svg(var(--pp-ph-iconSvgLoad-width), var(--pp-ph-iconSvgLoad-height), var(--pp-ph-iconSvgLoad-color), icon-svg-load);
+        .set-icon-svg(var(--pp-ph-iconSvgSearch-width), var(--pp-ph-iconSvgSearch-height), var(--pp-ph-iconSvgSearch-color), icon-svg-search);
 
         .prompt-append-list {
             .set-icon-svg(var(--pp-ph-pal-iconSvgWrap-width), var(--pp-ph-pal-iconSvgWrap-height), var(--pp-ph-pal-iconSvgWrap-color), icon-svg-wrap);
@@ -3362,6 +3366,77 @@
             max-width: var(--pp-pt-gradioButton-max-width) !important;
             width: var(--pp-pt-gradioButton-width) !important;
             padding: var(--pp-pt-gradioButton-padding) !important;
+        }
+    }
+
+    .prompt-search-list {
+        .common-popup-main(var(--pp-pt-promptAppendList-width), var(--pp-pt-promptAppendList-padding), var(--pp-pt-promptAppendList-position));
+        z-index: var(--pp-pt-promptAppendList-z-index);
+        background: var(--pp-pt-promptAppendList-background);
+        max-height: 350px;
+        overflow-y: auto;
+        min-width: 320px;
+        width: auto;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+
+        .search-no-results {
+            padding: 12px;
+            color: #888;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .search-results-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 4px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            gap: 16px;
+            transition: background 0.2s ease;
+
+            &:hover {
+                .common-colourful-background();
+            }
+
+            .result-tag-content {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+
+                .tag-local {
+                    font-size: 13px;
+                    font-weight: 500;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    color: #fff;
+                }
+
+                .tag-en {
+                    font-size: 11px;
+                    opacity: 0.6;
+                }
+            }
+
+            .result-group-info {
+                font-size: 11px;
+                opacity: 0.5;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 150px;
+            }
         }
     }
 
@@ -5185,6 +5260,7 @@
         // .physton-prompt .prompt-header
         --pp-promptHeader-border-bottom: 1px dashed rgba(255, 255, 255, .08);
         --pp-ph-iconSvgInput-color: rgba(255, 255, 255, .85);
+        --pp-ph-iconSvgSearch-color: rgba(255, 255, 255, .85);
 
         // .physton-prompt .prompt-header .extend-btn-item
         --pp-ph-ebi-iconSvgTranslate-color: #ff9900;

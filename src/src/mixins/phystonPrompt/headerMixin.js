@@ -181,7 +181,14 @@ export default {
             return names.join(' / ')
         },
         onAppendTagFocus(e) {
-            if (this.searchEnabled) return
+            if (this.searchEnabled) {
+                this.appendListStyle = {
+                    top: e.target.offsetTop + e.target.offsetHeight + 'px',
+                    left: e.target.offsetLeft + 'px',
+                }
+                this.showSearchList = true
+                return
+            }
             if (this.$refs.promptTagAppend.value === '' || this.$refs.promptTagAppend.value.trim() === '') {
                 this.appendListStyle = {
                     top: e.target.offsetTop + e.target.offsetHeight + 'px',
@@ -222,6 +229,7 @@ export default {
         onAppendTagBlur(e) {
             setTimeout(() => {
                 this.showAppendList = false
+                this.showSearchList = false
             }, 300)
         },
         selectAppendList(down = true) {
