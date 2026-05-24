@@ -3372,7 +3372,8 @@
     .prompt-search-list {
         .common-popup-main(var(--pp-pt-promptAppendList-width), var(--pp-pt-promptAppendList-padding), var(--pp-pt-promptAppendList-position));
         z-index: var(--pp-pt-promptAppendList-z-index);
-        background: var(--pp-pt-promptAppendList-background);
+        background: rgba(30, 30, 30, 0.98) !important;
+        backdrop-filter: blur(10px);
         max-height: 350px;
         overflow-y: auto;
         min-width: 320px;
