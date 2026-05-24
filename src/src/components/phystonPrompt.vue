@@ -204,6 +204,14 @@
                 </div>
                 <div class="prompt-header-extend prompt-append">
                     <div class="extend-content">
+                        <!-- Search Switch checkbox -->
+                        <div class="gradio-checkbox hover-scale-120">
+                            <label v-tooltip="getLang('search_switch')">
+                                <input type="checkbox" name="search_enabled" value="1"
+                                       v-model="searchEnabled">
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </label>
+                        </div>
                         <div class="gradio-checkbox hover-scale-120">
                             <label v-tooltip="getLang('auto_load_webui_prompt')">
                                 <input type="checkbox" name="auto_load_webui_prompt" value="1"
@@ -227,12 +235,13 @@
                             </label>
                         </div>
                         <textarea type="text" class="scroll-hide svelte-4xt1ch input-tag-append" ref="promptTagAppend"
-                                  :placeholder="getLang('please_enter_new_keyword')"
-                                  v-tooltip="getLang('enter_to_add')"
+                                  :placeholder="searchEnabled ? getLang('search_keywords_placeholder') : getLang('please_enter_new_keyword')"
+                                  v-tooltip="searchEnabled ? '' : getLang('enter_to_add')"
                                   @focus="onAppendTagFocus"
                                   @blur="onAppendTagBlur"
                                   @keyup="onAppendTagKeyUp"
-                                  @keydown="onAppendTagKeyDown"></textarea>
+                                  @keydown="onAppendTagKeyDown"
+                                  @input="onAppendTagInput"></textarea>
 
                         <div class="prompt-append-list" ref="promptAppendList" v-show="showAppendList"
                              :style="appendListStyle">
@@ -458,34 +467,9 @@
             </div>
             <Transition name="fade">
                 <div class="group-tabs" v-show="!hideGroupTags && groupTagsProcessed.length">
-                    <!-- Search Bar Section -->
-                    <div class="group-search-bar">
-                        <div class="search-toggle-wrap">
-                            <label class="search-checkbox-label">
-                                <input type="checkbox" v-model="searchEnabled" class="search-checkbox-input" />
-                                <span class="search-checkbox-text">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="search-icon-svg"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                    {{ getLang('search_switch') }}
-                                </span>
-                            </label>
-                        </div>
-                        <Transition name="slide-fade">
-                            <div v-if="searchEnabled" class="search-input-wrap">
-                                <input type="text"
-                                       v-model="searchQuery"
-                                       class="search-input"
-                                       :placeholder="getLang('search_keywords_placeholder')"
-                                       ref="searchInputRef" />
-                                <span v-if="searchQuery" class="clear-search-btn" @click="searchQuery = ''">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </span>
-                            </div>
-                        </Transition>
-                    </div>
-
                     <!-- Underneath search bar: if search is enabled, show search view, otherwise show original group-header and group-body! -->
                     <template v-if="searchEnabled">
-                        <div class="group-body search-mode-body">
+                        <div class="group-body search-mode-body" style="padding-top: 12px;">
                             <div class="search-results-container">
                                 <div v-if="!searchQuery" class="search-empty-placeholder">
                                     <div class="placeholder-icon">🔍</div>
@@ -887,10 +871,14 @@ export default {
             immediate: false,
         },
         searchEnabled(val) {
+            this.searchQuery = ''
+            if (this.$refs.promptTagAppend) {
+                this.$refs.promptTagAppend.value = ''
+            }
             if (val) {
                 this.$nextTick(() => {
-                    if (this.$refs.searchInputRef) {
-                        this.$refs.searchInputRef.focus()
+                    if (this.$refs.promptTagAppend) {
+                        this.$refs.promptTagAppend.focus()
                     }
                 })
             }
@@ -953,6 +941,11 @@ export default {
             // this.textarea.addEventListener('change', this.onTextareaChange)
             // this.textarea.removeEventListener('blur', this.onTextareaChange)
             // this.textarea.addEventListener('blur', this.onTextareaChange)
+        },
+        onAppendTagInput(e) {
+            if (this.searchEnabled) {
+                this.searchQuery = e.target.value
+            }
         },
         onTextareaChange(event) {
             if (this.onTextareaChangeTimeId) clearTimeout(this.onTextareaChangeTimeId)

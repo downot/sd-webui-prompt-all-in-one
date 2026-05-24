@@ -181,6 +181,7 @@ export default {
             return names.join(' / ')
         },
         onAppendTagFocus(e) {
+            if (this.searchEnabled) return
             if (this.$refs.promptTagAppend.value === '' || this.$refs.promptTagAppend.value.trim() === '') {
                 this.appendListStyle = {
                     top: e.target.offsetTop + e.target.offsetHeight + 'px',
@@ -275,6 +276,7 @@ export default {
             }
         },
         onAppendTagKeyDown(e, localValue = null) {
+            if (this.searchEnabled) return
             if (e.keyCode === 38 || e.keyCode === 40) {
             } else if (e.keyCode === 13) {
                 if (this.getAutocompleteResults() && ((this.autocompleteResultsParent && this.autocompleteResultsParent.style.display === 'flex') || this.autocompleteResults.style.display === 'none') && this.getAutocompleteResultsSelected()) {
@@ -352,6 +354,7 @@ export default {
             }
         },
         onAppendTagKeyUp(e) {
+            if (this.searchEnabled) return
             if (this.$refs.promptTagAppend.value === '' || this.$refs.promptTagAppend.value.trim() === '') {
                 this.$refs.promptTagAppend.value = ''
                 this.showAppendList = true
